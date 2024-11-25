@@ -8,7 +8,7 @@ Matrix::Matrix() {
 Matrix::Matrix(int rows, int columns) {
 	this->rows = rows;
 	this->columns = columns;
-	v.resize(rows, vector<int>(columns, 0));
+	v.resize(rows, vector<int>(columns, 122));
 }
 
 int Matrix::get_element(int i, int j) {
@@ -43,7 +43,7 @@ void Matrix::prepare_environment() {
 		}
 	}
 	
-	for (int i = 78; i < 88; i++) {
+	for (int i = rows/2-5; i < rows/2+5; i++) {
 		for (int j = columns / 3 - 3; j < columns / 3; j++) {
 			v[i][j] = 255;
 		}
