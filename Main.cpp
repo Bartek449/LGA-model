@@ -15,11 +15,16 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode(columns * pixelSize, rows * pixelSize), "LGA Simulation");
     
-    while (window.isOpen()) {
+    bool running = true;
+    while (running) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
+            if (event.type == sf::Event::Closed) running = false;
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Escape) running = false;
+                if (event.key.code == sf::Keyboard::Space) M.opening_gate();
+            }
+               
         }
 
         window.clear();
@@ -30,7 +35,7 @@ int main() {
                 sf::RectangleShape pixel(sf::Vector2f(pixelSize, pixelSize));
                 pixel.setPosition(j * pixelSize, i * pixelSize);
 
-                int value = M.get_element(i, j);
+                int value = M.get_element(i, j).get_color();
                 pixel.setFillColor(sf::Color(value, value, value));
                 window.draw(pixel);
             }

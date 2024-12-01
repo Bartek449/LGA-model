@@ -2,20 +2,21 @@
 #include <vector>
 #include <random>
 
+#include "Cell.h"
+
 using namespace std;
 
 class Matrix {
 private:
     int rows, columns;
-    vector <vector <int> > v;
+    vector <vector <Cell> > v;
 
 public:
     Matrix();
     Matrix(int, int);
 
-    int get_element(int, int);
-    void set_element(int, int, int);
-    Matrix randomize(int, int);
+    Cell get_element(int, int);
+    void set_element(int, int, Cell);
     void prepare_environment();
-    
+    void opening_gate();
 };
