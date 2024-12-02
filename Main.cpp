@@ -1,14 +1,15 @@
 ﻿#include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include"Matrix.h"
+
+#include"Simulation.h"
 
 
 
 
 int main() {
-    int rows = 150, columns = 209;
+    int rows = 170, columns = 229;
     Matrix M(rows, columns);
-    const int pixelSize = 5;
+    const int pixelSize = 3;
 
     M.prepare_environment();
     

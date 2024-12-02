@@ -17,6 +17,9 @@ public:
 
     Cell get_element(int, int);
     void set_element(int, int, Cell);
+    int get_rows_num();
+    int get_columns_num();
+    vector <Cell> get_neighbours(int, int);
     void prepare_environment();
     void opening_gate();
 };

@@ -2,21 +2,19 @@
 #include <vector>
 #include <random>
 
+using namespace std;
 
 class Cell {
 private:
     int color;
-    int population;
-    char direction;
+    vector <int> info;
     
 public:
     Cell();
-    Cell(int,int,char);
+    Cell(int,vector<int>);
     int get_color();
     void set_color(int);
-    int get_population();
-    void set_population(int);
-    char get_direction();
-    void set_direction(char);
+    vector<int> get_info();
+    void set_info(vector<int>);
     
 };
