@@ -25,6 +25,9 @@ int main() {
                
         }
 
+        simulation.collision();
+        simulation.streaming();
+
 
         window.clear();
 
