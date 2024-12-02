@@ -11,27 +11,27 @@ Matrix::Matrix(int rows, int columns) {
 	v.resize(rows, vector<Cell>(columns, Cell()));
 }
 
-Cell Matrix::get_element(int i, int j) {return v[i][j];}
-
-void Matrix::set_element(int i, int j, Cell val) {v[i][j] = val;}
+Cell& Matrix::get_element(int i, int j) {return v[i][j];}
 
 int Matrix::get_rows_num() { return rows; }
 int Matrix::get_columns_num() { return columns; }
 
-vector <Cell> Matrix::get_neighbours(int i, int j) {
-	vector<Cell> neighbours;
+vector<Cell> Matrix::get_neighbours(int i, int j) {
+    vector<Cell> neighbours;
 
-	if (i - 1 >= 0) neighbours.push_back(v[i - 1][j]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (i - 1 >= 0 && j + 1 < columns) neighbours.push_back(v[i - 1][j + 1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (j + 1 < columns) neighbours.push_back(v[i][j + 1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (i + 1 < rows && j + 1 < columns) neighbours.push_back(v[i + 1][j +1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (i + 1 < rows) neighbours.push_back(v[i + 1][j]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (i + 1 < rows && j - 1 >= 0) neighbours.push_back(v[i + 1][j - 1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (j - 1 >= 0) neighbours.push_back(v[i][j - 1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
-	if (i - 1 >= 0 && j - 1 >= 0) neighbours.push_back(v[i - 1][j - 1]); else neighbours.push_back(Cell(122, { 0,0,0,0 }));
+    if (i - 1 >= 0) neighbours.push_back(v[i - 1][j]); else neighbours.push_back(Cell());
+    if (i - 1 >= 0 && j + 1 < columns) neighbours.push_back(v[i - 1][j + 1]); else neighbours.push_back(Cell());
+	if (j + 1 < columns) neighbours.push_back(v[i][j + 1]); else neighbours.push_back(Cell());
+	if (i + 1 < rows && j + 1 < columns) neighbours.push_back(v[i + 1][j + 1]); else neighbours.push_back(Cell());
+	if (i + 1 < rows) neighbours.push_back(v[i + 1][j]); else neighbours.push_back(Cell());
+	if (i + 1 < rows && j - 1 >= 0) neighbours.push_back(v[i + 1][j - 1]); else neighbours.push_back(Cell());
+	if (j - 1 >= 0) neighbours.push_back(v[i][j - 1]); else neighbours.push_back(Cell());
+	if (i - 1 >= 0 && j - 1 >= 0) neighbours.push_back(v[i - 1][j - 1]); else neighbours.push_back(Cell());
+    
 
-	return neighbours;
+    return neighbours;
 }
+
 
 void Matrix::prepare_environment() {
 	random_device R;

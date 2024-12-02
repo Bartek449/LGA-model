@@ -1,6 +1,4 @@
 #pragma once
-#include <vector>
-#include <random>
 
 #include "Cell.h"
 
@@ -15,8 +13,8 @@ public:
     Matrix();
     Matrix(int, int);
 
-    Cell get_element(int, int);
-    void set_element(int, int, Cell);
+    Cell& get_element(int, int);
+   
     int get_rows_num();
     int get_columns_num();
     vector <Cell> get_neighbours(int, int);

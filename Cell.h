@@ -12,9 +12,12 @@ private:
 public:
     Cell();
     Cell(int,vector<int>);
-    int get_color();
+
     void set_color(int);
-    vector<int> get_info();
     void set_info(vector<int>);
+    
+    int get_color() const;
+    vector<int> get_info() const;
+    
     
 };

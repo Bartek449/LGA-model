@@ -1,13 +1,16 @@
 #pragma once
-#include <vector>
-#include <random>
+
 #include "Matrix.h"
 
 class Simulation {
-
+private:
+    Matrix s;
+    int iteration;
 public:
-    Simulation();
-    Matrix collision();
-    Matrix streamin();
+    Simulation(int, int);
+    Matrix& get_matrix();
 
+    void collision();
+    void streaming();
+    
 };
