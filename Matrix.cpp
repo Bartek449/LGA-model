@@ -19,15 +19,10 @@ int Matrix::get_columns_num() { return columns; }
 vector<Cell> Matrix::get_neighbours(int i, int j) {
     vector<Cell> neighbours;
 
-    if (i - 1 >= 0) neighbours.push_back(v[i - 1][j]); else neighbours.push_back(Cell());
-    if (i - 1 >= 0 && j + 1 < columns) neighbours.push_back(v[i - 1][j + 1]); else neighbours.push_back(Cell());
-	if (j + 1 < columns) neighbours.push_back(v[i][j + 1]); else neighbours.push_back(Cell());
-	if (i + 1 < rows && j + 1 < columns) neighbours.push_back(v[i + 1][j + 1]); else neighbours.push_back(Cell());
-	if (i + 1 < rows) neighbours.push_back(v[i + 1][j]); else neighbours.push_back(Cell());
-	if (i + 1 < rows && j - 1 >= 0) neighbours.push_back(v[i + 1][j - 1]); else neighbours.push_back(Cell());
 	if (j - 1 >= 0) neighbours.push_back(v[i][j - 1]); else neighbours.push_back(Cell());
-	if (i - 1 >= 0 && j - 1 >= 0) neighbours.push_back(v[i - 1][j - 1]); else neighbours.push_back(Cell());
-    
+	if (i - 1 >= 0)  neighbours.push_back(v[i-1][j]); else neighbours.push_back(Cell());
+	if (j + 1 < columns)  neighbours.push_back(v[i][j+1]); else neighbours.push_back(Cell());
+	if (i + 1 < rows)  neighbours.push_back(v[i+1][j]); else neighbours.push_back(Cell());
 
     return neighbours;
 }
