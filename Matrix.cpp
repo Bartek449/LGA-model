@@ -32,19 +32,19 @@ void Matrix::prepare_environment() {
 	random_device R;
 	int d;
 	uniform_int_distribution<int> dist(0, 1);
-	uniform_int_distribution<int> dir(1, 4);
+	uniform_int_distribution<int> dir(0, 3);
 	for (int i = 3; i < rows-3 && i < v.size(); i++) {
 		for (int j = 3; j < columns/3-3 && j < v[i].size(); j++) {
 			v[i][j] = Cell(dist(R) * 255, {0,0,0,0});
 			if (v[i][j].get_color() == 0) {
 				d = dir(R);
-				if (d == 1)
+				if (d == 0)
 					v[i][j].set_info({1,0,0,0});
-				else if (d == 2)
+				else if (d == 1)
 					v[i][j].set_info({ 0,1,0,0 });
-				else if (d == 3)
+				else if (d == 2)
 					v[i][j].set_info({ 0,0,1,0 });
-				else 
+				else  if (d == 3)
 					v[i][j].set_info({ 0,0,0,1 });
 			}
 		}
