@@ -16,11 +16,10 @@ public:
 
     void set_color(int);
     void set_info(vector<int>);
+
+    void set_direct_info(int, int);
     
     int get_color() const;
-    vector<int> get_info() const;
+    vector<int> get_info();
     
-    bool is_empty() const;
-    bool is_wall() const;
-    bool is_gas() const;
 };

@@ -1,85 +1,143 @@
-﻿#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
+﻿#include <SFML/Window.hpp>
 #include <GL/glew.h>
 #include "Simulation.h"
+#include <vector>
+
+void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int rows, int columns) {
+    // Przypisanie miejsca na bufor
+    vertices.clear();
+    vertices.reserve(rows * columns * 12);
+
+    const float pixelWidth = 2.0f / columns;
+    const float pixelHeight = 2.0f / rows;
+
+    for (int i = 0; i < rows; ++i) {
+        float y = 1.0f - (float)i / rows * 2.0f;
+
+        for (int j = 0; j < columns; ++j) {
+            Cell cell = simulation.get_matrix().get_element(i, j);
+            float color;
+            if (cell.get_color() == 255) color = 1.0f;
+            else if (cell.get_color() == 0) color = 0.0f;
+            else color = 0.5f;
+            float x = (float)j / columns * 2.0f - 1.0f;
+
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(color);
+
+            vertices.push_back(x + pixelWidth);
+            vertices.push_back(y);
+            vertices.push_back(color);
+
+            vertices.push_back(x + pixelWidth);
+            vertices.push_back(y - pixelHeight);
+            vertices.push_back(color);
+
+            vertices.push_back(x);
+            vertices.push_back(y - pixelHeight);
+            vertices.push_back(color);
+        }
+    }
+}
 
 int main() {
     int rows = 170, columns = 229;
-    const int pixelSize = 3;  // Rozmiar pojedynczego piksela
-
     Simulation simulation(rows, columns);
     simulation.get_matrix();
 
-    // Okno o rozmiarze dopasowanym do macierzy
-    sf::RenderWindow window(sf::VideoMode(columns * pixelSize, rows * pixelSize), "LGA Simulation");
+    sf::Window window(sf::VideoMode(800, 600), "LGA Simulation", sf::Style::Default, sf::ContextSettings(24));
+    glewInit();
 
-    // VertexArray do rysowania pikseli
-    sf::VertexArray pixels(sf::Quads, rows * columns * 4);
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
 
-    // Ustawienie pozycji wierzchołków (stała część)
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < columns; ++j) {
-            int index = (i * columns + j) * 4;
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-            float x = j * pixelSize;
-            float y = i * pixelSize;
+    std::vector<float> vertices;
+    updatePixelData(simulation, vertices, rows, columns);
 
-            // Przypisanie pozycji wierzchołków
-            pixels[index].position = sf::Vector2f(x, y);
-            pixels[index + 1].position = sf::Vector2f(x + pixelSize, y);
-            pixels[index + 2].position = sf::Vector2f(x + pixelSize, y + pixelSize);
-            pixels[index + 3].position = sf::Vector2f(x, y + pixelSize);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STREAM_DRAW);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    GLuint shaderProgram = glCreateProgram();
+
+    const char* vertexShaderSource = R"(
+        #version 330 core
+        layout(location = 0) in vec2 aPos;
+        layout(location = 1) in float aColor;
+
+        out float color;
+
+        void main() {
+            gl_Position = vec4(aPos, 0.0, 1.0);
+            color = aColor;
         }
-    }
+    )";
 
-    // Funkcja do aktualizacji kolorów pikseli
-    auto updatePixelColors = [&](Simulation& sim) {
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < columns; ++j) {
-                Cell cell = sim.get_matrix().get_element(i, j);
-                sf::Color color;
+    const char* fragmentShaderSource = R"(
+        #version 330 core
+        in float color;
+        out vec4 FragColor;
 
-                // Kolor w zależności od wartości w komórce
-                if (cell.get_color() == 255)
-                    color = sf::Color::White;
-                else if (cell.get_color() == 0)
-                    color = sf::Color::Black;
-                else
-                    color = sf::Color(122, 122, 122);  // Szary
-
-                // Obliczanie indeksu w tablicy wierzchołków
-                int index = (i * columns + j) * 4;
-
-                // Przypisanie koloru
-                pixels[index].color = color;
-                pixels[index + 1].color = color;
-                pixels[index + 2].color = color;
-                pixels[index + 3].color = color;
-            }
+        void main() {
+            FragColor = vec4(color, color, color, 1.0);
         }
-        };
+    )";
 
-    bool running = true;
-    while (running) {
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    glAttachShader(shaderProgram, vertexShader);
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    glAttachShader(shaderProgram, fragmentShader);
+
+    glLinkProgram(shaderProgram);
+    glUseProgram(shaderProgram);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) running = false;
+            if (event.type == sf::Event::Closed)
+                window.close();
+
             if (event.type == sf::Event::KeyPressed) {
-                if (event.key.code == sf::Keyboard::Escape) running = false;
-                if (event.key.code == sf::Keyboard::Space) simulation.get_matrix().opening_gate();
+                if (event.key.code == sf::Keyboard::Escape)
+                    window.close();
+                if (event.key.code == sf::Keyboard::Space)
+                    simulation.get_matrix().opening_gate();
             }
         }
 
         simulation.collision();
         simulation.streaming();
+        updatePixelData(simulation, vertices, rows, columns);
 
-        // Zaktualizuj kolory pikseli
-        updatePixelColors(simulation);
+        // Aktualizacja tylko zmieniających się danych w buforze
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
 
-        window.clear();  // Czyści ekran
-        window.draw(pixels);  // Rysowanie pikseli
-        window.display();  // Wyświetlenie nowego obrazu
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_QUADS, 0, rows * columns * 4);
+
+        window.display();
     }
+
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
+    glDeleteProgram(shaderProgram);
 
     return 0;
 }

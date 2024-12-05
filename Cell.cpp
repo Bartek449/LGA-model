@@ -16,16 +16,10 @@ Cell::Cell(int color, vector<int> info)  {
 void Cell::set_color(int c) { color = c; }
 void Cell::set_info(vector<int> i) { info = i; }
 
-vector<int> Cell::get_info() const { return info; }
+void Cell::set_direct_info(int i, int num) {
+	info[i] = num;
+}
+
+vector<int> Cell::get_info() { return info; }
 int Cell::get_color() const { return color; }
 
-
-bool Cell::is_empty() const {
-	return color == 255;
-}
-bool Cell::is_wall() const {
-	return color == 122;
-}
-bool Cell::is_gas() const {
-	return color == 0;
-}
