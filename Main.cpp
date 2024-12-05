@@ -5,37 +5,52 @@
 
 int main() {
     int rows = 170, columns = 229;
-    const int pixelSize = 3;
+    const int pixelSize = 3;  // Rozmiar pojedynczego piksela
 
     Simulation simulation(rows, columns);
     simulation.get_matrix();
 
+    // Okno o rozmiarze dopasowanym do macierzy
     sf::RenderWindow window(sf::VideoMode(columns * pixelSize, rows * pixelSize), "LGA Simulation");
 
-
+    // VertexArray do rysowania pikseli
     sf::VertexArray pixels(sf::Quads, rows * columns * 4);
 
-    auto updatePixels = [&](Simulation& sim) {
+    // Ustawienie pozycji wierzchołków (stała część)
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < columns; ++j) {
+            int index = (i * columns + j) * 4;
+
+            float x = j * pixelSize;
+            float y = i * pixelSize;
+
+            // Przypisanie pozycji wierzchołków
+            pixels[index].position = sf::Vector2f(x, y);
+            pixels[index + 1].position = sf::Vector2f(x + pixelSize, y);
+            pixels[index + 2].position = sf::Vector2f(x + pixelSize, y + pixelSize);
+            pixels[index + 3].position = sf::Vector2f(x, y + pixelSize);
+        }
+    }
+
+    // Funkcja do aktualizacji kolorów pikseli
+    auto updatePixelColors = [&](Simulation& sim) {
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < columns; ++j) {
                 Cell cell = sim.get_matrix().get_element(i, j);
                 sf::Color color;
+
+                // Kolor w zależności od wartości w komórce
                 if (cell.get_color() == 255)
                     color = sf::Color::White;
                 else if (cell.get_color() == 0)
                     color = sf::Color::Black;
                 else
-                    color = sf::Color(122, 122, 122);
+                    color = sf::Color(122, 122, 122);  // Szary
 
+                // Obliczanie indeksu w tablicy wierzchołków
                 int index = (i * columns + j) * 4;
-                float x = j * pixelSize;
-                float y = i * pixelSize;
 
-                pixels[index].position = sf::Vector2f(x, y);
-                pixels[index + 1].position = sf::Vector2f(x + pixelSize, y);
-                pixels[index + 2].position = sf::Vector2f(x + pixelSize, y + pixelSize);
-                pixels[index + 3].position = sf::Vector2f(x, y + pixelSize);
-
+                // Przypisanie koloru
                 pixels[index].color = color;
                 pixels[index + 1].color = color;
                 pixels[index + 2].color = color;
@@ -58,11 +73,12 @@ int main() {
         simulation.collision();
         simulation.streaming();
 
-        updatePixels(simulation);
+        // Zaktualizuj kolory pikseli
+        updatePixelColors(simulation);
 
-        window.clear();
-        window.draw(pixels);
-        window.display();
+        window.clear();  // Czyści ekran
+        window.draw(pixels);  // Rysowanie pikseli
+        window.display();  // Wyświetlenie nowego obrazu
     }
 
     return 0;
