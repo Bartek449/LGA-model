@@ -1,4 +1,5 @@
 #pragma once
+#include<iostream>
 #include <vector>
 #include <random>
 
@@ -19,5 +20,7 @@ public:
     int get_color() const;
     vector<int> get_info() const;
     
-    
+    bool is_empty() const;
+    bool is_wall() const;
+    bool is_gas() const;
 };

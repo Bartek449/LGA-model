@@ -5,7 +5,6 @@
 class Simulation {
 private:
     Matrix s;
-    int i;
 public:
     Simulation(int, int);
     Matrix& get_matrix();

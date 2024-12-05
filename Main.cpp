@@ -1,18 +1,49 @@
 ﻿#include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-
-#include"Simulation.h"
+#include <GL/glew.h>
+#include "Simulation.h"
 
 int main() {
     int rows = 170, columns = 229;
- 
     const int pixelSize = 3;
 
-    Simulation simulation(rows,columns);
-    simulation.get_matrix().prepare_environment();
-    
+    Simulation simulation(rows, columns);
+    simulation.get_matrix();
+
     sf::RenderWindow window(sf::VideoMode(columns * pixelSize, rows * pixelSize), "LGA Simulation");
-    
+
+
+    sf::VertexArray pixels(sf::Quads, rows * columns * 4);
+
+    auto updatePixels = [&](Simulation& sim) {
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < columns; ++j) {
+                Cell cell = sim.get_matrix().get_element(i, j);
+                sf::Color color;
+                if (cell.get_color() == 255)
+                    color = sf::Color::White;
+                else if (cell.get_color() == 0)
+                    color = sf::Color::Black;
+                else
+                    color = sf::Color(122, 122, 122);
+
+                int index = (i * columns + j) * 4;
+                float x = j * pixelSize;
+                float y = i * pixelSize;
+
+                pixels[index].position = sf::Vector2f(x, y);
+                pixels[index + 1].position = sf::Vector2f(x + pixelSize, y);
+                pixels[index + 2].position = sf::Vector2f(x + pixelSize, y + pixelSize);
+                pixels[index + 3].position = sf::Vector2f(x, y + pixelSize);
+
+                pixels[index].color = color;
+                pixels[index + 1].color = color;
+                pixels[index + 2].color = color;
+                pixels[index + 3].color = color;
+            }
+        }
+        };
+
     bool running = true;
     while (running) {
         sf::Event event;
@@ -22,39 +53,15 @@ int main() {
                 if (event.key.code == sf::Keyboard::Escape) running = false;
                 if (event.key.code == sf::Keyboard::Space) simulation.get_matrix().opening_gate();
             }
-               
         }
 
         simulation.collision();
         simulation.streaming();
 
+        updatePixels(simulation);
 
         window.clear();
-
-        for (int i = 0; i < simulation.get_matrix().get_rows_num(); ++i) {
-            for (int j = 0; j < simulation.get_matrix().get_columns_num(); ++j) {
-                
-                Cell cell = simulation.get_matrix().get_element(i, j);
-
-                
-                sf::RectangleShape pixel(sf::Vector2f(pixelSize, pixelSize));
-                pixel.setPosition(j * pixelSize, i * pixelSize);
-
-                
-                if (cell.get_color() == 255)
-                    pixel.setFillColor(sf::Color::White); 
-                else if (cell.get_color() == 0)
-                    pixel.setFillColor(sf::Color::Black); 
-                else
-                    pixel.setFillColor(sf::Color(122, 122, 122));
-
-                
-                window.draw(pixel);
-            }
-        }
-
-        
-
+        window.draw(pixels);
         window.display();
     }
 

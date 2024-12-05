@@ -12,12 +12,16 @@ private:
 public:
     Matrix();
     Matrix(int, int);
+    Matrix(const Matrix&);
+   
+    Matrix clone() const;
+
 
     Cell& get_element(int, int);
    
-    int get_rows_num();
-    int get_columns_num();
-    vector <Cell> get_neighbours(int, int);
+    int get_rows_num() const;
+    int get_columns_num() const;
+    vector <Cell*> get_neighbours(int, int);
     void prepare_environment();
     void opening_gate();
 };
