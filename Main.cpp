@@ -25,6 +25,7 @@ void checkProgramLinking(GLuint program) {
 }
 
 void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int rows, int columns) {
+    int c = 0;
     std::vector<float> newVertices;
     newVertices.reserve(rows * columns * 12);
 
@@ -38,7 +39,10 @@ void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int r
             Cell cell = simulation.get_matrix().get_element(i, j);
             float color;
             if (cell.get_color() == 255)  color = 1.0f;
-            else if (cell.get_color() == 0) color = 0.0f;
+            else if (cell.get_color() == 0) {
+                color = 0.0f;
+                c++;
+            }
             else  color = 0.5f;
             float x = static_cast<float>(j) / columns * 2.0f - 1.0f;
 
@@ -50,13 +54,13 @@ void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int r
                 });
         }
     }
-
+    cout << c << endl;
     vertices.swap(newVertices);
 }
 
 int main() {
 
-    const int rows = 170, columns = 229;
+    const int rows = 70, columns = 129;
 
     Simulation simulation(rows, columns);
 
@@ -143,7 +147,7 @@ int main() {
         }
 
         
-        if (logic_clock.getElapsedTime().asMilliseconds() >= 4) {
+        if (logic_clock.getElapsedTime().asMilliseconds() >= 2) {
             logic_clock.restart();
             simulation.collision();
             simulation.streaming();
@@ -152,7 +156,7 @@ int main() {
             glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
         }
 
-        if (render_clock.getElapsedTime().asMilliseconds() >= 2) { 
+        if (render_clock.getElapsedTime().asMilliseconds() >= 1) { 
             render_clock.restart();
             glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_QUADS, 0, rows * columns * 4);
