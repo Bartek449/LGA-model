@@ -10,13 +10,11 @@ Matrix& Simulation::get_matrix() { return s; }
 
 void Simulation::collision() {
     Matrix next_matrix = s;  
-    vector<Cell*> neigh;
     vector<int> info;
 
     for (int i = 1; i < s.get_rows_num() - 1; i++) {
         for (int j = 1; j < s.get_columns_num() - 1; j++) {
             Cell& current_cell = s.get_element(i, j);
-            neigh = s.get_neighbours(i, j);
             info = current_cell.get_info();
 
             if (info[0] == 1 && info[2] == 1) {
@@ -61,17 +59,13 @@ void Simulation::collision() {
 void Simulation::streaming() {
 
     Matrix next_matrix = s;
-    vector<Cell*> neigh;
     vector<int> info;
 
     for (int i = 1; i < s.get_rows_num() - 1; i++) {
         for (int j = 1; j < s.get_columns_num() - 1; j++) {
             Cell& current_cell = s.get_element(i, j);
-             
-            neigh = s.get_neighbours(i, j);
-            info = current_cell.get_info();;
-
-
+            info = current_cell.get_info();
+            
             if (info[0] == 1) {
                 if (s.get_element(i, j - 1).get_color() != 122) {
                     next_matrix.get_element(i, j - 1).set_direct_info(0,1);
@@ -80,7 +74,7 @@ void Simulation::streaming() {
                     next_matrix.get_element(i, j).set_info({ 0, 0, 0, 0 });
                 }
                 else {
-                    next_matrix.get_element(i, j).set_info({ 0, 0, 1, 0 });
+                    next_matrix.get_element(i, j).set_direct_info(2,1);
                     next_matrix.get_element(i, j).set_color(0);
                 }
             }
@@ -92,7 +86,7 @@ void Simulation::streaming() {
                     next_matrix.get_element(i, j).set_info({ 0,0,0,0 });
                 }
                 else {
-                    next_matrix.get_element(i, j).set_info({ 0, 0, 0, 1 });
+                    next_matrix.get_element(i, j).set_direct_info(3,1);
                     next_matrix.get_element(i, j).set_color(0);
                 }
             }
@@ -105,7 +99,7 @@ void Simulation::streaming() {
                     next_matrix.get_element(i, j).set_info({ 0,0,0,0 });
                 }
                 else {
-                    next_matrix.get_element(i, j).set_info({ 1, 0, 0, 0 });
+                    next_matrix.get_element(i, j).set_direct_info(0,1);
                     next_matrix.get_element(i, j).set_color(0);
                 }
             }
@@ -118,7 +112,7 @@ void Simulation::streaming() {
                     next_matrix.get_element(i, j).set_info({ 0,0,0,0 });
                 }
                 else {
-                    next_matrix.get_element(i, j).set_info({ 0, 1, 0, 0 });
+                    next_matrix.get_element(i, j).set_direct_info(1,1);
                     next_matrix.get_element(i, j).set_color(0);
                 }
 

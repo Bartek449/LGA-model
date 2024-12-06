@@ -3,48 +3,62 @@
 #include "Simulation.h"
 #include <vector>
 
+
+void checkShaderCompilation(GLuint shader, const std::string& shaderType) {
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        throw runtime_error(shaderType + " Shader Compilation Failed: " + (infoLog));
+    }
+}
+
+void checkProgramLinking(GLuint program) {
+    GLint success;
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        throw runtime_error("Shader Program Linking Failed: " + string(infoLog));
+    }
+}
+
 void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int rows, int columns) {
-    // Przypisanie miejsca na bufor
-    vertices.clear();
-    vertices.reserve(rows * columns * 12);
+    std::vector<float> newVertices;
+    newVertices.reserve(rows * columns * 12);
 
     const float pixelWidth = 2.0f / columns;
     const float pixelHeight = 2.0f / rows;
 
     for (int i = 0; i < rows; ++i) {
-        float y = 1.0f - (float)i / rows * 2.0f;
+        float y = 1.0f - static_cast<float>(i) / rows * 2.0f;
 
         for (int j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
             float color;
-            if (cell.get_color() == 255) color = 1.0f;
+            if (cell.get_color() == 255)  color = 1.0f;
             else if (cell.get_color() == 0) color = 0.0f;
-            else color = 0.5f;
-            float x = (float)j / columns * 2.0f - 1.0f;
+            else  color = 0.5f;
+            float x = static_cast<float>(j) / columns * 2.0f - 1.0f;
 
-            vertices.push_back(x);
-            vertices.push_back(y);
-            vertices.push_back(color);
-
-            vertices.push_back(x + pixelWidth);
-            vertices.push_back(y);
-            vertices.push_back(color);
-
-            vertices.push_back(x + pixelWidth);
-            vertices.push_back(y - pixelHeight);
-            vertices.push_back(color);
-
-            vertices.push_back(x);
-            vertices.push_back(y - pixelHeight);
-            vertices.push_back(color);
+            newVertices.insert(newVertices.end(), {
+                x, y, color,
+                x + pixelWidth, y, color,
+                x + pixelWidth, y - pixelHeight, color,
+                x, y - pixelHeight, color
+                });
         }
     }
+
+    vertices.swap(newVertices);
 }
 
 int main() {
-    int rows = 170, columns = 229;
+
+    const int rows = 170, columns = 229;
+
     Simulation simulation(rows, columns);
-    simulation.get_matrix();
 
     sf::Window window(sf::VideoMode(800, 600), "LGA Simulation", sf::Style::Default, sf::ContextSettings(24));
     glewInit();
@@ -56,10 +70,11 @@ int main() {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    std::vector<float> vertices;
+
+    vector<float> vertices;
     updatePixelData(simulation, vertices, rows, columns);
 
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -95,25 +110,30 @@ int main() {
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
-    glAttachShader(shaderProgram, vertexShader);
+    checkShaderCompilation(vertexShader, "Vertex");
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
-    glAttachShader(shaderProgram, fragmentShader);
+    checkShaderCompilation(fragmentShader, "Fragment");
 
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
-    glUseProgram(shaderProgram);
+    checkProgramLinking(shaderProgram);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    glUseProgram(shaderProgram);
+
+    
+    sf::Clock logic_clock, render_clock;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Escape)
                     window.close();
@@ -122,19 +142,25 @@ int main() {
             }
         }
 
-        simulation.collision();
-        simulation.streaming();
-        updatePixelData(simulation, vertices, rows, columns);
+        
+        if (logic_clock.getElapsedTime().asMilliseconds() >= 4) {
+            logic_clock.restart();
+            simulation.collision();
+            simulation.streaming();
+            updatePixelData(simulation, vertices, rows, columns);
 
-        // Aktualizacja tylko zmieniających się danych w buforze
-        glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+        }
 
-        glClear(GL_COLOR_BUFFER_BIT);
-        glDrawArrays(GL_QUADS, 0, rows * columns * 4);
-
-        window.display();
+        if (render_clock.getElapsedTime().asMilliseconds() >= 2) { 
+            render_clock.restart();
+            glClear(GL_COLOR_BUFFER_BIT);
+            glDrawArrays(GL_QUADS, 0, rows * columns * 4);
+            window.display();
+        }
     }
 
+    
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
     glDeleteProgram(shaderProgram);

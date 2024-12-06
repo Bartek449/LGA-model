@@ -21,7 +21,6 @@ public:
    
     int get_rows_num() const;
     int get_columns_num() const;
-    vector <Cell*> get_neighbours(int, int);
     void prepare_environment();
     void opening_gate();
 };

@@ -37,16 +37,6 @@ Cell& Matrix::get_element(int i, int j) {return v[i][j];}
 int Matrix::get_rows_num() const{ return rows; }
 int Matrix::get_columns_num() const { return columns; }
 
-vector<Cell*> Matrix::get_neighbours(int i, int j) {
-	vector<Cell*> neighbours;
-	if (j - 1 >= 0) neighbours.push_back(&v[i][j - 1]); else neighbours.push_back(NULL);
-	if (i - 1 >= 0) neighbours.push_back(&v[i - 1][j]); else neighbours.push_back(NULL);
-	if (j + 1 < columns) neighbours.push_back(&v[i][j + 1]); else neighbours.push_back(NULL);
-	if (i + 1 < rows) neighbours.push_back(&v[i + 1][j]); else neighbours.push_back(NULL);
-	return neighbours;
-}
-
-
 void Matrix::prepare_environment() {
 	std::cout << "Preparing environment...\n";
 	random_device R;
