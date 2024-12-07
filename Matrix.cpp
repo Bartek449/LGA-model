@@ -28,28 +28,27 @@ Matrix::Matrix(const Matrix& other) {
 		}
 	}
 }
-Matrix Matrix::clone() const {
-	return Matrix(*this);  
-}
 
 Cell& Matrix::get_element(int i, int j) {return v[i][j];}
 
 int Matrix::get_rows_num() const{ return rows; }
 int Matrix::get_columns_num() const { return columns; }
 
-void Matrix::prepare_environment() {
+void Matrix::prepare_environment(int prob) {
 	random_device R;
-	uniform_int_distribution<int> dist(0, 1);
+	uniform_int_distribution<int> dist(0, 100);
 	uniform_int_distribution<int> dir(0, 3);
 	for (int i = 1; i < rows - 1 && i < v.size(); i++) {
 		for (int j = 2; j < columns / 3 - 1 && j < v[i].size(); j++) {
 			Cell& currentCell = v[i][j];
-			currentCell.set_color(dist(R) * 255); 
-
+			if (dist(R) < prob)
+			{
+				currentCell.set_color(0);
+			}
+			else currentCell.set_color(255);
 			if (currentCell.get_color() == 0) { 
-				int d = dir(R);
 				vector<vector<int>> directions = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} };
-				currentCell.set_info(directions[d]);  
+				currentCell.set_info(directions[dir(R)]);
 			}
 		}
 

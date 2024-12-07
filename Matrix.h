@@ -14,13 +14,10 @@ public:
     Matrix(int, int);
     Matrix(const Matrix&);
    
-    Matrix clone() const;
-
-
     Cell& get_element(int, int);
    
     int get_rows_num() const;
     int get_columns_num() const;
-    void prepare_environment();
+    void prepare_environment(int);
     void opening_gate();
 };

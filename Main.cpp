@@ -25,19 +25,32 @@ void checkProgramLinking(GLuint program) {
 }
 
 void updateTextureData(Simulation& simulation, std::vector<float>& pixelData, int rows, int columns) {
+    int c = 0;
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
-            float color = (cell.get_color() == 255) ? 1.0f : (cell.get_color() == 0) ? 0.0f : 0.5f;
+            float color;
+            if (cell.get_color() == 255)  color = 1.0f;
+
+            else if (cell.get_color() == 0) {
+                color = 0.0f;
+                c++;
+            }
+            else  color = 0.5f;
             pixelData[i * columns + j] = color;
         }
     }
+    cout << c << endl;
 }
 
 int main() {
     const int rows = 50, columns = 109;
 
     Simulation simulation(rows, columns);
+    int n;
+    cout << "Preferred gas density: ";
+    cin >> n;
+    simulation.get_matrix().prepare_environment(n);
 
     sf::Window window(sf::VideoMode(800, 600), "LGA Simulation", sf::Style::Default, sf::ContextSettings(24));
     glewInit();
