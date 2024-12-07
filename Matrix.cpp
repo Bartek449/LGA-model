@@ -38,13 +38,11 @@ int Matrix::get_rows_num() const{ return rows; }
 int Matrix::get_columns_num() const { return columns; }
 
 void Matrix::prepare_environment() {
-	std::cout << "Preparing environment...\n";
 	random_device R;
 	uniform_int_distribution<int> dist(0, 1);
 	uniform_int_distribution<int> dir(0, 3);
-
-	for (int i = 3; i < rows - 3 && i < v.size(); i++) {
-		for (int j = 3; j < columns / 3 - 3 && j < v[i].size(); j++) {
+	for (int i = 1; i < rows - 1 && i < v.size(); i++) {
+		for (int j = 2; j < columns / 3 - 1 && j < v[i].size(); j++) {
 			Cell& currentCell = v[i][j];
 			currentCell.set_color(dist(R) * 255); 
 
@@ -55,7 +53,7 @@ void Matrix::prepare_environment() {
 			}
 		}
 
-		for (int j = columns / 3; j < columns - 3 && j < v[i].size(); j++) {
+		for (int j = columns / 3+1; j < columns - 2; j++) {
 			v[i][j].set_color(255);  
 		}
 	}
@@ -64,13 +62,10 @@ void Matrix::prepare_environment() {
 
 void Matrix::opening_gate() {
 	for (int i = rows / 2 - 5; i < rows / 2 + 5; ++i) {
-		for (int j = columns / 3 - 3; j < columns / 3; ++j) {
+		for (int j = columns / 3 - 1; j < columns / 3+1; ++j) {
 			Cell& currentCell = v[i][j];
-			if (currentCell.get_color() != 255) {
-				currentCell.set_color(255); 
-			}
-			else {
-				currentCell.set_color(122);  
+			if (currentCell.get_color() == 122) {
+				currentCell.set_color(255);
 			}
 		}
 	}

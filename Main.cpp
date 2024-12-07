@@ -2,7 +2,7 @@
 #include <GL/glew.h>
 #include "Simulation.h"
 #include <vector>
-
+#include <stdexcept>
 
 void checkShaderCompilation(GLuint shader, const std::string& shaderType) {
     GLint success;
@@ -10,7 +10,7 @@ void checkShaderCompilation(GLuint shader, const std::string& shaderType) {
     if (!success) {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        throw runtime_error(shaderType + " Shader Compilation Failed: " + (infoLog));
+        throw std::runtime_error(shaderType + " Shader Compilation Failed: " + std::string(infoLog));
     }
 }
 
@@ -20,47 +20,22 @@ void checkProgramLinking(GLuint program) {
     if (!success) {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, NULL, infoLog);
-        throw runtime_error("Shader Program Linking Failed: " + string(infoLog));
+        throw std::runtime_error("Shader Program Linking Failed: " + std::string(infoLog));
     }
 }
 
-void updatePixelData(Simulation& simulation, std::vector<float>& vertices, int rows, int columns) {
-    int c = 0;
-    std::vector<float> newVertices;
-    newVertices.reserve(rows * columns * 12);
-
-    const float pixelWidth = 2.0f / columns;
-    const float pixelHeight = 2.0f / rows;
-
+void updateTextureData(Simulation& simulation, std::vector<float>& pixelData, int rows, int columns) {
     for (int i = 0; i < rows; ++i) {
-        float y = 1.0f - static_cast<float>(i) / rows * 2.0f;
-
         for (int j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
-            float color;
-            if (cell.get_color() == 255)  color = 1.0f;
-            else if (cell.get_color() == 0) {
-                color = 0.0f;
-                c++;
-            }
-            else  color = 0.5f;
-            float x = static_cast<float>(j) / columns * 2.0f - 1.0f;
-
-            newVertices.insert(newVertices.end(), {
-                x, y, color,
-                x + pixelWidth, y, color,
-                x + pixelWidth, y - pixelHeight, color,
-                x, y - pixelHeight, color
-                });
+            float color = (cell.get_color() == 255) ? 1.0f : (cell.get_color() == 0) ? 0.0f : 0.5f;
+            pixelData[i * columns + j] = color;
         }
     }
-    cout << c << endl;
-    vertices.swap(newVertices);
 }
 
 int main() {
-
-    const int rows = 70, columns = 129;
+    const int rows = 50, columns = 109;
 
     Simulation simulation(rows, columns);
 
@@ -72,52 +47,66 @@ int main() {
     glGenBuffers(1, &vbo);
 
     glBindVertexArray(vao);
+
+    float quadVertices[] = {
+        -1.0f,  1.0f, 0.0f, 1.0f, 
+         1.0f,  1.0f, 1.0f, 1.0f, 
+         1.0f, -1.0f, 1.0f, 0.0f, 
+        -1.0f, -1.0f, 0.0f, 0.0f  
+    };
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-
-    vector<float> vertices;
-    updatePixelData(simulation, vertices, rows, columns);
-
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_DYNAMIC_DRAW);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, columns, rows, 0, GL_RED, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    vector<float> pixelData(rows * columns);
 
     GLuint shaderProgram = glCreateProgram();
 
     const char* vertexShaderSource = R"(
         #version 330 core
         layout(location = 0) in vec2 aPos;
-        layout(location = 1) in float aColor;
+        layout(location = 1) in vec2 aTexCoord;
 
-        out float color;
+        out vec2 texCoord;
 
         void main() {
             gl_Position = vec4(aPos, 0.0, 1.0);
-            color = aColor;
+            texCoord = aTexCoord;
         }
     )";
 
     const char* fragmentShaderSource = R"(
         #version 330 core
-        in float color;
+        in vec2 texCoord;
         out vec4 FragColor;
 
+        uniform sampler2D uTexture;
+
         void main() {
+            float color = texture(uTexture, texCoord).r;
             FragColor = vec4(color, color, color, 1.0);
         }
     )";
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertexShader);
     checkShaderCompilation(vertexShader, "Vertex");
 
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
     glCompileShader(fragmentShader);
     checkShaderCompilation(fragmentShader, "Fragment");
 
@@ -130,9 +119,10 @@ int main() {
     glDeleteShader(fragmentShader);
 
     glUseProgram(shaderProgram);
+    glUniform1i(glGetUniformLocation(shaderProgram, "uTexture"), 0);
 
-    
     sf::Clock logic_clock, render_clock;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -146,27 +136,30 @@ int main() {
             }
         }
 
-        
         if (logic_clock.getElapsedTime().asMilliseconds() >= 2) {
             logic_clock.restart();
-            simulation.collision();
+            
             simulation.streaming();
-            updatePixelData(simulation, vertices, rows, columns);
+            simulation.collision();
 
-            glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+            simulation.updating();
+            updateTextureData(simulation, pixelData, rows, columns);
+
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, columns, rows, GL_RED, GL_FLOAT, pixelData.data());
         }
 
-        if (render_clock.getElapsedTime().asMilliseconds() >= 1) { 
+        if (render_clock.getElapsedTime().asMilliseconds() >= 8) {
             render_clock.restart();
             glClear(GL_COLOR_BUFFER_BIT);
-            glDrawArrays(GL_QUADS, 0, rows * columns * 4);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
             window.display();
         }
     }
 
-    
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
+    glDeleteTextures(1, &texture);
     glDeleteProgram(shaderProgram);
 
     return 0;
