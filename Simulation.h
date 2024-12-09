@@ -12,5 +12,5 @@ public:
     void updating();
     void collision();
     void streaming();
-    
+
 };

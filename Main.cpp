@@ -1,8 +1,33 @@
 ﻿#include <SFML/Window.hpp>
 #include <GL/glew.h>
+
 #include "Simulation.h"
-#include <vector>
-#include <stdexcept>
+
+const char* vertexShaderSource = R"(
+        #version 330 core
+        layout(location = 0) in vec2 aPos;
+        layout(location = 1) in vec2 aTexCoord;
+
+        out vec2 texCoord;
+
+        void main() {
+            gl_Position = vec4(aPos, 0.0, 1.0);
+            texCoord = aTexCoord;
+        }
+    )";
+
+const char* fragmentShaderSource = R"(
+        #version 330 core
+        in vec2 texCoord;
+        out vec4 FragColor;
+
+        uniform sampler2D uTexture;
+
+        void main() {
+            float color = texture(uTexture, texCoord).r;
+            FragColor = vec4(color, color, color, 1.0);
+        }
+    )";
 
 void checkShaderCompilation(GLuint shader, const std::string& shaderType) {
     GLint success;
@@ -13,7 +38,6 @@ void checkShaderCompilation(GLuint shader, const std::string& shaderType) {
         throw std::runtime_error(shaderType + " Shader Compilation Failed: " + std::string(infoLog));
     }
 }
-
 void checkProgramLinking(GLuint program) {
     GLint success;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
@@ -25,29 +49,23 @@ void checkProgramLinking(GLuint program) {
 }
 
 void updateTextureData(Simulation& simulation, std::vector<float>& pixelData, int rows, int columns) {
-    int c = 0;
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
             float color;
             if (cell.get_color() == 255)  color = 1.0f;
-
-            else if (cell.get_color() == 0) {
-                color = 0.0f;
-                c++;
-            }
+            else if (cell.get_color() == 0) color = 0.0f;
             else  color = 0.5f;
             pixelData[i * columns + j] = color;
         }
     }
-    cout << c << endl;
 }
 
 int main() {
     const int rows = 50, columns = 109;
 
     Simulation simulation(rows, columns);
-    int n;
+    double n;
     cout << "Preferred gas density: ";
     cin >> n;
     simulation.get_matrix().prepare_environment(n);
@@ -62,10 +80,10 @@ int main() {
     glBindVertexArray(vao);
 
     float quadVertices[] = {
-        -1.0f,  1.0f, 0.0f, 1.0f, 
-         1.0f,  1.0f, 1.0f, 1.0f, 
-         1.0f, -1.0f, 1.0f, 0.0f, 
-        -1.0f, -1.0f, 0.0f, 0.0f  
+        -1.0f,  1.0f, 0.0f, 1.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+         1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -87,31 +105,7 @@ int main() {
 
     GLuint shaderProgram = glCreateProgram();
 
-    const char* vertexShaderSource = R"(
-        #version 330 core
-        layout(location = 0) in vec2 aPos;
-        layout(location = 1) in vec2 aTexCoord;
-
-        out vec2 texCoord;
-
-        void main() {
-            gl_Position = vec4(aPos, 0.0, 1.0);
-            texCoord = aTexCoord;
-        }
-    )";
-
-    const char* fragmentShaderSource = R"(
-        #version 330 core
-        in vec2 texCoord;
-        out vec4 FragColor;
-
-        uniform sampler2D uTexture;
-
-        void main() {
-            float color = texture(uTexture, texCoord).r;
-            FragColor = vec4(color, color, color, 1.0);
-        }
-    )";
+    
 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
@@ -144,17 +138,17 @@ int main() {
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Escape)
                     window.close();
-                if (event.key.code == sf::Keyboard::Space)
-                    simulation.get_matrix().opening_gate();
+                
             }
         }
 
-        if (logic_clock.getElapsedTime().asMilliseconds() >= 2) {
+        if (logic_clock.getElapsedTime().asMilliseconds() >= 8) {
             logic_clock.restart();
-            
-            simulation.streaming();
+
             simulation.collision();
 
+            simulation.streaming();
+           
             simulation.updating();
             updateTextureData(simulation, pixelData, rows, columns);
 
@@ -162,7 +156,7 @@ int main() {
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, columns, rows, GL_RED, GL_FLOAT, pixelData.data());
         }
 
-        if (render_clock.getElapsedTime().asMilliseconds() >= 8) {
+        if (render_clock.getElapsedTime().asMilliseconds() >= 16) {
             render_clock.restart();
             glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

@@ -5,7 +5,7 @@ Cell::Cell() {
 	info = { 0,0,0,0 };
 }
 
-Cell::Cell(int color, vector<int> info)  {
+Cell::Cell(int color, vector<int> info) {
 	this->color = color;
 	if (info.size() != 4) {
 		info.resize(4, 0);
@@ -22,4 +22,3 @@ void Cell::set_direct_info(int i, int num) {
 
 vector<int> Cell::get_info() { return info; }
 int Cell::get_color() const { return color; }
-
