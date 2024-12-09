@@ -48,14 +48,14 @@ void checkProgramLinking(GLuint program) {
     }
 }
 
-void updateTextureData(Simulation& simulation, std::vector<float>& pixelData, int rows, int columns) {
+void updateTextureData(Simulation& simulation, vector<float>& pixelData, int rows, int columns) {
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
             float color;
-            if (cell.get_color() == 255)  color = 1.0f;
-            else if (cell.get_color() == 0) color = 0.0f;
-            else  color = 0.5f;
+            if (cell.get_info() == EMPTY)  color = 1.0f;
+            else if (cell.get_info() == WALL) color = 0.5f;
+            else  color = 0.0f;
             pixelData[i * columns + j] = color;
         }
     }
@@ -65,10 +65,7 @@ int main() {
     const int rows = 50, columns = 109;
 
     Simulation simulation(rows, columns);
-    double n;
-    cout << "Preferred gas density: ";
-    cin >> n;
-    simulation.get_matrix().prepare_environment(n);
+    simulation.get_matrix().prepare_environment();
 
     sf::Window window(sf::VideoMode(800, 600), "LGA Simulation", sf::Style::Default, sf::ContextSettings(24));
     glewInit();
@@ -146,10 +143,8 @@ int main() {
             logic_clock.restart();
 
             simulation.collision();
-
             simulation.streaming();
            
-            simulation.updating();
             updateTextureData(simulation, pixelData, rows, columns);
 
             glBindTexture(GL_TEXTURE_2D, texture);

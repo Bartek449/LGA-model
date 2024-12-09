@@ -34,9 +34,9 @@ Cell& Matrix::get_element(int i, int j) { return v[i][j]; }
 int Matrix::get_rows_num() const { return rows; }
 int Matrix::get_columns_num() const { return columns; }
 
-void Matrix::prepare_environment(double prob) {
+void Matrix::prepare_environment() {
 	random_device R;
-	uniform_int_distribution<int> dist(0, 99);
+	uniform_int_distribution<int> dist(0, 1);
 	uniform_int_distribution<int> dir(0, 3);
 	vector<vector<int>> directions = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} };
 	for (int i = 1; i < rows - 1 && i < v.size(); i++) {
@@ -44,15 +44,10 @@ void Matrix::prepare_environment(double prob) {
 			Cell& currentCell = v[i][j];
 			if (j >= 2 && j < columns / 3 - 1)
 			{
-				if (dist(R) < 100)
-				{
-					currentCell.set_color(0);
-					currentCell.set_info(directions[dir(R)]);
-				}
-				else currentCell.set_color(255);
+				if (dist(R) == 0) currentCell.set_info(directions[dir(R)]);
+				else currentCell.set_info(EMPTY);
 			}
-			if (j >= columns / 3 + 1 && j < columns - 2)  currentCell.set_color(255);
-			if (i >= rows / 2 - 5 && i < rows / 2 + 5 && j >= columns / 3 - 1 && j < columns / 3 + 1) currentCell.set_color(255);
+			if ((j >= columns / 3 + 1 && j < columns - 2) || (i >= rows / 2 - 5 && i < rows / 2 + 5 && j >= columns / 3 - 1 && j < columns / 3 + 1))  currentCell.set_info(EMPTY);
 		}
 
 	}
