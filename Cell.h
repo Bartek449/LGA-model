@@ -13,10 +13,10 @@ private:
     vector <int> info;
 public:
     Cell();
-    Cell(int, vector<int>);
+    Cell(vector<int>);
 
     void set_info(vector<int>);
     void set_direct_info(int, int);
-    vector<int> get_info();
+    const vector<int>& get_info() const;
 
 };

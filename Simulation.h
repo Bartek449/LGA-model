@@ -9,7 +9,6 @@ public:
     Simulation(int, int);
     Matrix& get_matrix();
 
-    void updating();
     void collision();
     void streaming();
 

@@ -49,20 +49,22 @@ void checkProgramLinking(GLuint program) {
 }
 
 void updateTextureData(Simulation& simulation, vector<float>& pixelData, int rows, int columns) {
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < columns; ++j) {
+    int alive = 0;
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < columns; ++j) {
             Cell cell = simulation.get_matrix().get_element(i, j);
             float color;
             if (cell.get_info() == EMPTY)  color = 1.0f;
             else if (cell.get_info() == WALL) color = 0.5f;
-            else  color = 0.0f;
+            else { color = 0.0f; alive++; }
             pixelData[i * columns + j] = color;
         }
     }
+    cout << "Liczba czastek gazu: " << alive << endl;
 }
 
 int main() {
-    const int rows = 50, columns = 109;
+    const int rows = 50, columns =109;
 
     Simulation simulation(rows, columns);
     simulation.get_matrix().prepare_environment();
@@ -141,16 +143,17 @@ int main() {
 
         if (logic_clock.getElapsedTime().asMilliseconds() >= 8) {
             logic_clock.restart();
-
-            simulation.collision();
-            simulation.streaming();
-           
             updateTextureData(simulation, pixelData, rows, columns);
+
+           
+            
+            simulation.streaming();
+            simulation.collision();
 
             glBindTexture(GL_TEXTURE_2D, texture);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, columns, rows, GL_RED, GL_FLOAT, pixelData.data());
         }
-
+        
         if (render_clock.getElapsedTime().asMilliseconds() >= 16) {
             render_clock.restart();
             glClear(GL_COLOR_BUFFER_BIT);
