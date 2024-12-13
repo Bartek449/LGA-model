@@ -18,24 +18,20 @@ Cell& Matrix::get_element(int i, int j) {
 	return v[i][j];
 }
 
-
-
-
 void Matrix::prepare_environment() {
 	mt19937 rng(random_device{}());
 	uniform_int_distribution<int> dist(0, 100);
 	uniform_int_distribution<int> dir(0, 3);
-	vector<vector<int>> directions = { {1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1} };
-	for (size_t i = 1; i < rows - 1 && i < v.size(); i++) {
-		for (size_t j = 0; j < columns - 1; j++) {
+
+	for (size_t i=0; i < rows; i++) {
+		for (size_t j = 0; j < columns; j++) {
 			Cell& currentCell = v[i][j];
-			if (j >= 2 && j < columns / 3 - 1)
+			if (i == 0 || i == rows - 1 || j == 0 || j == columns - 1 || (j == columns/3 && (i < rows/2 - 3 || i > rows/2 +3))) currentCell.set_info(WALL);
+			if (i > 0 && i < rows-1 && j > 0 && j < columns / 3)
 			{
-				currentCell.set_info(directions[dir(rng)]);
-				//if (dist(rng) < 100) currentCell.set_info(directions[dir(rng)]);
-				//else currentCell.set_info(EMPTY);
+				if (dist(rng) < 70) currentCell.set_direct_info(dir(rng),1);
 			}
-			if ((j >= columns / 3 + 1 && j < columns - 2) || (i >= rows / 2 - 3 && i < rows / 2 + 3 && j >= columns / 3 - 1 && j < columns / 3 + 1))  currentCell.set_info(EMPTY);
+			
 		}
 
 	}

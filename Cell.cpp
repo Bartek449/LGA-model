@@ -1,6 +1,6 @@
 #include"Cell.h"
 
-Cell::Cell() : info(WALL) {}
+Cell::Cell() : info(EMPTY) {}
 
 Cell::Cell(vector<int> i) {
 	if (info.size() != 4) throw invalid_argument("The info vector must have exactly 4 elements.");
