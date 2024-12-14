@@ -29,7 +29,7 @@ void Matrix::prepare_environment() {
 			if (i == 0 || i == rows - 1 || j == 0 || j == columns - 1 || (j == columns/3 && (i < rows/2 - 3 || i > rows/2 +3))) currentCell.set_info(WALL);
 			if (i > 0 && i < rows-1 && j > 0 && j < columns / 3)
 			{
-				if (dist(rng) < 70) currentCell.set_direct_info(dir(rng),1);
+				if (dist(rng) < 80) currentCell.set_direct_info(dir(rng),1);
 			}
 			
 		}

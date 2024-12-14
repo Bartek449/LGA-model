@@ -147,8 +147,8 @@ int main() {
 
            
             
-            simulation.streaming();
-            simulation.collision();
+           simulation.streaming();
+           simulation.collision();
 
             glBindTexture(GL_TEXTURE_2D, texture);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, columns, rows, GL_RED, GL_FLOAT, pixelData.data());
