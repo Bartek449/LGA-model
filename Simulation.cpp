@@ -8,14 +8,16 @@ void Simulation::collision() {
     Matrix next_matrix = s;
     int rows = s.get_rows_num();
     int columns = s.get_columns_num();
+    vector <int> up_down{ 0, 1, 0, 1 };
+    vector<int> left_right{ 1,0,1,0 };
 
     for (size_t i = 1; i < rows - 1; i++) {
         for (size_t j = 1; j < columns - 1; j++) {
             Cell& future_cell = next_matrix.get_element(i, j);
             const vector<int>& info = s.get_element(i, j).get_info();
 
-            if (info[0] == 1 && info[2] == 1) future_cell.set_info({ 0,1,0,1 });
-            if (info[1] == 1 && info[3] == 1) future_cell.set_info({ 1,0,1,0 });
+            if (info == up_down) future_cell.set_info(left_right);
+            if (info == left_right) future_cell.set_info(up_down);
         }
     }
 
